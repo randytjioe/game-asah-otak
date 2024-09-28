@@ -18,5 +18,5 @@ CREATE TABLE point_game (
 
 -- Tambahkan data awal untuk game
 INSERT INTO master_kata (kata, clue) VALUES 
-('LEMAR', 'Aku tempat menyimpan pakaian?'),
+('LEMARI', 'Aku tempat menyimpan pakaian?'),
 ('MEJA', 'Aku tempat bekerja di kantor?');

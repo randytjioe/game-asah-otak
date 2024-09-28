@@ -7,11 +7,11 @@ require 'php/game.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asah Otak Game</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Brain Teaser Game</title>
+    <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <h1>Asah Otak Game</h1>
+    <h1>Brain Teaser Game</h1>
     <?php if (!isset($_SESSION['game_over'])): ?>
         <p class="clue"><?php echo $clue; ?></p>
         <form method="post">
@@ -25,12 +25,12 @@ require 'php/game.php';
             }
             ?>
             <br>
-            <input type="submit" value="Jawab">
+            <input type="submit" value="Submit Answer">
         </form>
     <?php else: ?>
-        <p>Poin yang Anda dapat adalah <?php echo $_SESSION['score']; ?></p>
-        <p>Jawaban yang benar: <?php echo $word; ?></p>
-        <p>Jawaban Anda: 
+        <p>Your score is: <?php echo $_SESSION['score']; ?></p>
+        <p>The correct answer was: <?php echo $word; ?></p>
+        <p>Your answer: 
             <?php
             for ($i = 0; $i < strlen($word); $i++) {
                 $class = ($_SESSION['user_answer'][$i] == $word[$i]) ? 'correct' : 'incorrect';
@@ -39,13 +39,13 @@ require 'php/game.php';
             ?>
         </p>
         <form method="post">
-            <input type="submit" name="save_score" value="Simpan Poin">
-            <input type="submit" name="play_again" value="Ulangi">
+            <input type="submit" name="save_score" value="Save Score">
+            <input type="submit" name="play_again" value="Play Again">
         </form>
     <?php endif; ?>
 <script>
     <?php if (isset($_POST['save_score'])): ?>
-    let username = prompt("Masukkan nama Anda:");
+    let username = prompt("Enter your name:");
     if (username) {
         let form = document.createElement('form');
         form.method = 'post';
@@ -54,6 +54,6 @@ require 'php/game.php';
         form.submit();
     }
     <?php endif; ?>
-    </script>
+</script>
 </body>
 </html>
