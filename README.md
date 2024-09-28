@@ -1,117 +1,106 @@
 
-# Asah Otak Game - Jawaban Soal Nomor 1-8 (Node.js Backend)
+# Asah Otak Game - Setup Guide for Linux with Apache
 
 ## Deskripsi
-Proyek ini adalah implementasi permainan **Asah Otak** yang sesuai dengan soal nomor 1 hingga 8 yang diberikan. Permainan ini menampilkan kata secara acak, meminta pemain untuk menebak kata tersebut, menghitung skor, dan menyimpan hasilnya ke database.
+Proyek ini adalah implementasi permainan **Asah Otak**, di mana pengguna bisa menebak kata berdasarkan petunjuk (clue). Skor dihitung berdasarkan seberapa akurat jawaban yang diberikan.
+
+Proyek ini menggunakan **PHP** sebagai backend, **MySQL** sebagai database, dan **Apache** sebagai server web. Berikut adalah langkah-langkah untuk menjalankan proyek ini di Linux dengan **Apache** yang telah terinstall.
 
 ## Struktur Folder
-```bash
+```
 /asah_otak_game
 ├── /css
-│   └── style.css                 # (Opsional) File CSS untuk styling
+│   └── style.css                # File CSS untuk styling
 ├── /js
-│   └── script.js                 # (Opsional) File JavaScript untuk interaksi frontend
-├── /server
-│   ├── app.js                    # File utama Node.js untuk backend
-│   └── database.sql              # File SQL untuk membuat tabel dan contoh data
-├── /public
-│   ├── index.html                # Halaman utama HTML untuk permainan
-├── /routes
-│   └── words.js                  # Routes untuk mengambil kata acak dan menyimpan skor
-└── README.md                     # Dokumentasi proyek ini
+│   └── script.js                # (Opsional) JavaScript jika diperlukan
+├── /php
+│   ├── game.php                 # File utama PHP untuk game logic
+│   └── config.php               # File konfigurasi database
+├── /db
+│   └── database.sql             # File SQL untuk membuat tabel dan contoh data
+├── index.php                    # Halaman utama untuk mengarahkan ke game
+└── README.md                    # Dokumentasi proyek ini
 ```
 
-## Soal 1: Mengambil Kata Secara Acak dari Database (Node.js Backend)
-Pada **/routes/words.js**, kata acak diambil dari tabel `master_kata` di database menggunakan query berikut:
+## Langkah-langkah Menjalankan Proyek
 
-```javascript
-router.get('/random', (req, res) => {
-    const sql = 'SELECT * FROM master_kata ORDER BY RAND() LIMIT 1';
-    db.query(sql, (err, result) => {
-        if (err) throw err;
-        res.json(result[0]);
-    });
-});
-```
-Kata yang diambil akan dikirimkan ke frontend dalam format JSON untuk ditampilkan kepada pemain.
+### 1. Setup Proyek di Apache
+- Pindahkan folder proyek **asah_otak_game** ke direktori **Apache** di `/var/www/html/`:
+  ```bash
+  sudo mv /path/to/asah_otak_game /var/www/html/
+  ```
 
-## Soal 2: Menampilkan Textbox dengan Huruf Clue dan Menghitung Skor
+- Ubah permission folder agar bisa diakses oleh Apache:
+  ```bash
+  sudo chown -R www-data:www-data /var/www/html/asah_otak_game
+  sudo chmod -R 755 /var/www/html/asah_otak_game
+  ```
 
-- **2a.** Jumlah textbox sesuai dengan jumlah huruf dari kata yang diambil secara acak.
-- **2b.** Huruf ke-3 dan ke-7 ditampilkan sebagai clue, tidak bisa diubah.
-- **2c.** Setiap huruf yang benar mendapat +10 poin, dan setiap huruf yang salah dikurangi 2 poin.
-- **2d.** Contoh penghitungan: Jika jawabannya **LEMAR** dan pengguna menjawab **KEMIRI**, total poin yang didapat adalah 26.
+### 2. Setup Database MySQL
+- Buka **MySQL** di terminal:
+  ```bash
+  mysql -u root -p
+  ```
 
-## Soal 3: Validasi Pengisian Textbox
-Semua textbox harus diisi sebelum jawaban dikirimkan. Validasi dilakukan di frontend untuk memastikan tidak ada textbox yang kosong:
+- Buat database dan tabel yang diperlukan dengan menjalankan file SQL di **/db/database.sql**:
+  ```sql
+  CREATE DATABASE asah_otak;
 
-```javascript
-if (userAnswer.some(input => input === '')) {
-    alert("Semua textbox harus diisi!");
-    return;
-}
-```
+  USE asah_otak;
 
-## Soal 4: Permainan Berakhir Setelah Submit
-Setelah pemain mengisi semua textbox dan menekan tombol **Submit**, permainan berakhir, skor dihitung, dan hasil ditampilkan.
+  -- Tabel untuk menyimpan kata dan clue
+  CREATE TABLE master_kata (
+      id INT(11) AUTO_INCREMENT PRIMARY KEY,
+      kata VARCHAR(255),
+      clue VARCHAR(255)
+  );
 
-## Soal 5: Menampilkan Pesan Poin yang Diperoleh
-Setelah skor dihitung, pesan ditampilkan seperti ini:
-```javascript
-document.getElementById("result").innerText = `Poin yang anda dapat adalah ${totalScore}.`;
-```
+  -- Tabel untuk menyimpan skor permainan
+  CREATE TABLE point_game (
+      id INT(11) AUTO_INCREMENT PRIMARY KEY,
+      nama_user VARCHAR(255),
+      total_point INT(11)
+  );
 
-## Soal 6: Pilihan "Simpan Poin" atau "Ulangi"
-Setelah hasil skor ditampilkan, pengguna diberikan pilihan untuk:
-- **Simpan Poin**: Menyimpan skor ke database.
-- **Ulangi**: Memulai permainan baru tanpa menyimpan skor.
+  -- Tambahkan data awal untuk game
+  INSERT INTO master_kata (kata, clue) VALUES 
+  ('LEMAR', 'Aku tempat menyimpan pakaian?'),
+  ('MEJA', 'Aku tempat bekerja di kantor?');
+  ```
 
-## Soal 7: Menyimpan Poin ke Database (Node.js Backend)
-Jika pemain memilih **Simpan Poin**, nama pemain dan skor dikirim ke backend (`/api/words/save-score`) untuk disimpan di database `point_game`. Berikut adalah query SQL yang digunakan:
+### 3. Konfigurasi Apache untuk Proyek
+- Pastikan Apache diatur untuk melayani file PHP. Restart Apache setelah melakukan konfigurasi:
+  ```bash
+  sudo systemctl restart apache2
+  ```
 
-```javascript
-router.post('/save-score', (req, res) => {
-    const { nama_user, total_point } = req.body;
-    const sql = 'INSERT INTO point_game (nama_user, total_point) VALUES (?, ?)';
-    db.query(sql, [nama_user, total_point], (err, result) => {
-        if (err) throw err;
-        res.send('Poin tersimpan!');
-    });
-});
-```
+- Cek apakah PHP sudah berjalan di Apache dengan membuat file tes:
+  ```bash
+  sudo nano /var/www/html/test.php
+  ```
 
-## Soal 8: Memulai Ulang Permainan
-Jika pemain memilih **Ulangi**, permainan dimulai kembali tanpa menyimpan data skor yang sebelumnya.
+- Tambahkan kode berikut ke file `test.php`:
+  ```php
+  <?php phpinfo(); ?>
+  ```
 
-```javascript
-function restartGame() {
-    userAnswer = [];
-    totalScore = 0;
-    document.getElementById("result").innerText = "";
-    document.getElementById("saveSection").style.display = "none";
-    getRandomWord();  // Mengambil kata baru
-}
-```
+- Buka browser dan akses `http://localhost/test.php`. Jika halaman informasi PHP muncul, itu berarti PHP sudah berjalan dengan benar.
 
-## Cara Menjalankan Proyek
+### 4. Akses Proyek di Browser
+- Buka browser dan akses proyek melalui URL:
+  ```
+  http://localhost/asah_otak_game/index.php
+  ```
 
-1. **Setup Database**: Buat database MySQL dan jalankan file SQL di `/db/database.sql` untuk membuat tabel `master_kata` dan `point_game`, serta menambahkan contoh data.
-2. **Instalasi Node.js**: Install dependensi Node.js yang diperlukan:
-    ```bash
-    npm install express mysql body-parser cors
-    ```
-3. **Frontend**: Buka file `index.html` di folder `/public` di browser untuk menjalankan permainan.
-4. **Backend**: Jalankan server Node.js:
-    ```bash
-    node server/app.js
-    ```
+### 5. Permainan
+- Anda akan melihat halaman permainan, di mana petunjuk akan diberikan, dan pengguna harus mengisi huruf yang benar.
+- Setelah permainan selesai, pengguna bisa menyimpan skor atau memulai permainan baru.
 
 ## Kebutuhan Sistem
-
-- **Node.js** 12.x atau lebih tinggi
-- **MySQL** 5.x atau lebih tinggi
-- Web browser modern (Chrome, Firefox, dll.)
+- **Linux** dengan **Apache** terinstall.
+- **PHP** dan **MySQL**.
+- Web browser modern untuk mengakses permainan.
 
 ## Lisensi
 Proyek ini dibuat untuk tujuan edukasi dan dapat digunakan sesuai kebutuhan.
-# game-asah-otak
+
